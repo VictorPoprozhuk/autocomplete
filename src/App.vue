@@ -1,24 +1,17 @@
 <template>
   <div id="app">
+    <Autocomplete/>
   </div>
 </template>
 
 <script>
+  import Autocomplete from './components/Autocomplete/Autocomplete.vue'
+  export default {
 
-export default {
-  name: 'App',
-  components: {
+    name: 'App',
+    components: {
+      Autocomplete
+    }
   }
-}
 </script>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
