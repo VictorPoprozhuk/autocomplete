@@ -1,5 +1,5 @@
 <template>
-    <div class="autocomplete-container">
+    <div class="autocomplete-container" ref="container">
         <input
             v-model="searchQuery"
             class="query-input"
@@ -8,7 +8,7 @@
             id="autocomplete"
             autocomplete="off"
             ref="input"
-            @click="isListVisible = true"
+            @click="showList"
             @blur="onBlur"
             @keydown="onKeyDown"
             @keydown.enter="onEnterKey"
@@ -23,7 +23,8 @@
             v-if="searchQuery"
             class="clear-input"
             type="button"
-            @mousedown="clearInput"
+            @click.stop="clearInput"
+            @mousedown.prevent
         >
             <img src="../../icons/icon-close.svg" />
         </button>
@@ -35,7 +36,8 @@
                 :class="{active: highlightedOptionIndex === index, selected: option === selectedOption}"
                 class="option-item"
                 @mouseenter="highlightedOptionIndex = index"
-                @mousedown="selectOption(option)"
+                @click.stop="selectOption(option)"
+                @mousedown.prevent
                 ref="optionItem"
             >
                 {{ option.title }}
@@ -128,9 +130,7 @@
 
         if (!isListVisible) {
           this.showList();
-        }
-
-        if (this.highlightedOptionIndex !== null && isListVisible) {
+        } else if (this.highlightedOptionIndex !== null && isListVisible) {
           this.selectOption(this.filteredOptions[this.highlightedOptionIndex]);
         }
       },
@@ -146,23 +146,19 @@
       selectOption(option) {
         this.selectedOption = option;
         this.searchQuery = option.title;
-        this.isListVisible = false;
-        this.setInputFocus();
       },
       clearInput() {
         this.searchQuery = "";
-        this.setInputFocus();
       },
       showMore() {
         this.numberOfOptions += DEFAULT_NUMBER_OF_OPTIONS;
       },
-      setInputFocus() {
-        setTimeout(() => this.$refs.input.focus(), 0);
-      },
       scrollToHighlightedOption() {
-        const option = this.$refs.optionItem[this.highlightedOptionIndex];
+        setTimeout(() => {
+          const option = this.$refs.optionItem[this.highlightedOptionIndex];
 
-        option?.scrollIntoView({ block: "nearest" });
+          option?.scrollIntoView({ block: "nearest" });
+        }, 0);
       }
     },
   }
