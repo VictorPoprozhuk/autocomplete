@@ -1,32 +1,69 @@
+@import "../../styles/variables";
+
 .autocomplete-container {
   max-width: 100%;
   width: 300px;
-  font-size: 16px;
-
-  label {
-    margin-bottom: 10px;
-    display: block;
-  }
 
   .input-container {
     position: relative;
     width: 100%;
+    padding-top: 10px;
+  }
+
+  label {
+    position: absolute;
+    top: 0;
+    display: block;
+    transition: 0.2s;
+    color: $inactive;
+    font-size: 0.7rem;
+    font-weight: bold;
   }
 
   .query-input {
     width: 100%;
     height: 35px;
-    border: 1px solid #232323;
-    border-radius: 4px;
-    padding-left: 10px;
     padding-right: 30px;
     font-size: 16px;
+    border: none;
+    border-bottom: 1px solid $inactive;
     box-sizing: border-box;
+    transition: border-bottom-color .2s;
+
+
+    &:placeholder-shown ~ label {
+      cursor: text;
+      top: 20px;
+      font-size: 1rem;
+      font-weight: normal;
+    }
+
+    &:focus {
+      outline: none;
+      border-bottom-color: $accent;
+
+      ~ label {
+        position: absolute;
+        top: 0;
+        display: block;
+        transition: 0.2s;
+        font-size: 0.7rem;
+        color: $accent;
+        font-weight: bold;
+      }
+
+    }
+
+    &::placeholder {
+      color: transparent;
+    }
+
+
   }
 
   .clear-input {
     position: absolute;
-    top: 10px;
+    bottom: 10px;
     right: 10px;
     border-radius: 50%;
     border: none;
@@ -34,6 +71,7 @@
     width: 16px;
     height: 16px;
     padding: 0;
+    cursor: pointer;
 
     img {
       width: 100%;
@@ -46,9 +84,14 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, .5);
     max-height: 300px;
     overflow-y: auto;
+    position: absolute;
+    bottom: -2px;
+    transform: translateY(100%);
+    z-index: 1;
+    background-color: #fff;
 
     .option-item {
       padding: 7px 15px;
@@ -56,7 +99,7 @@
       cursor: pointer;
 
       &.selected {
-        background-color: #beffff;
+        background-color: rgba($accent, 0.15);
       }
 
       &.active {
@@ -65,7 +108,7 @@
     }
 
     .observer {
-      height: 1px;
+      height: 5px;
     }
   }
 
