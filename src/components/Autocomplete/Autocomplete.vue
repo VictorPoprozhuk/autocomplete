@@ -10,9 +10,10 @@
             ref="input"
             @click="showList"
             @blur="onBlur"
-            @keydown="onKeyDown"
             @keydown.enter="onEnterKey"
             @keydown.esc="onEscKey"
+            @keydown.up.prevent="onArrowKey('up')"
+            @keydown.down.prevent="onArrowKey('down')"
         >
 
         <label for="autocomplete">
@@ -102,38 +103,32 @@
         this.searchQuery = this.selectedOption?.title  || "";
         this.highlightedOptionIndex = null;
       },
-      onKeyDown(e) {
-        const key = e.key;
-        const arrowKeys = ["ArrowUp", "ArrowDown"];
-
-        if (arrowKeys.includes(key)) {
-          e.preventDefault();
-          this.showList();
-          this.onArrowKey(key);
-          this.scrollToHighlightedOption();
-        }
-      },
       onArrowKey(key) {
+        this.showList();
+        key === 'up' ? this.onArrowUpKey() : this.onArrowDownKey();
+        this.scrollToHighlightedOption();
+      },
+      onArrowUpKey() {
         const isAnyOptionHighlighted = this.highlightedOptionIndex !== null;
         const isFirstOptionHighlighted = this.highlightedOptionIndex === 0;
+
+        const highlightLastOption = () => this.highlightedOptionIndex = this.filteredOptions.length - 1;
+        const highlightPrevious = () => this.highlightedOptionIndex--;
+
+        !isAnyOptionHighlighted || isFirstOptionHighlighted
+          ? highlightLastOption()
+          : highlightPrevious();
+      },
+      onArrowDownKey() {
+        const isAnyOptionHighlighted = this.highlightedOptionIndex !== null;
         const isLastOptionHighlighted = this.highlightedOptionIndex === this.filteredOptions.length - 1;
 
         const highlightFirstOption = () => this.highlightedOptionIndex = 0;
-        const highlightLastOption = () => this.highlightedOptionIndex = this.filteredOptions.length - 1;
-        const highlightPrevious = () => this.highlightedOptionIndex--;
         const highlightNext = () => this.highlightedOptionIndex++;
 
-        if (key === 'ArrowUp') {
-          !isAnyOptionHighlighted || isFirstOptionHighlighted
-            ? highlightLastOption()
-            : highlightPrevious();
-        }
-
-        if (key === 'ArrowDown') {
-          !isAnyOptionHighlighted || isLastOptionHighlighted
-            ? highlightFirstOption()
-            : highlightNext();
-        }
+        !isAnyOptionHighlighted || isLastOptionHighlighted
+          ? highlightFirstOption()
+          : highlightNext();
       },
       onEnterKey() {
         const isListVisible = this.isListVisible;
