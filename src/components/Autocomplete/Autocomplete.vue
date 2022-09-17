@@ -1,42 +1,66 @@
 <template>
     <div class="autocomplete-container">
+        <input
+            v-model="searchQuery"
+            class="query-input"
+            type="text"
+            placeholder="Choose a name"
+            id="autocomplete"
+            autocomplete="off"
+            ref="input"
+            @click="isListVisible = true"
+            @blur="onBlur"
+            @keydown="onKeyDown"
+            @keydown.enter="onEnterKey"
+            @keydown.esc="onEscKey"
+        >
+
         <label for="autocomplete">
-            Label
+            Choose a name
         </label>
-        <div class="input-container">
-            <input
-                class="query-input"
-                type="text"
-                placeholder="Search"
-                id="autocomplete"
-                v-model="searchQuery"
-                @click="isListVisible = true"
-                @blur="onBlur"
-                @keydown="onKeyDown"
-                autocomplete="off"
+
+        <button
+            v-if="searchQuery"
+            class="clear-input"
+            type="button"
+            @mousedown="clearInput"
+        >
+            <img src="../../icons/icon-close.svg" />
+        </button>
+
+        <ul class="options-list" v-if="isListVisible" ref="optionsList">
+            <li
+                v-for="(option, index) in filteredOptions"
+                :key="option.id"
+                :class="{active: highlightedOptionIndex === index, selected: option === selectedOption}"
+                class="option-item"
+                @mouseenter="highlightedOptionIndex = index"
+                @mousedown="selectOption(option)"
+                ref="optionItem"
             >
-            <button class="clear-input" type="button" aria-label="Clear input" @click="clearInput" v-if="searchQuery">
-                <img src="../../icons/icon-close.svg" />
-            </button>
-            <ul class="options-list" v-if="isListVisible" ref="optionsList">
-                <li class="option-item" @mouseenter="highlightedOption = index" :class="{active: highlightedOption === index, selected: option === selectedOption}" v-for="(option, index) in filteredOptions" :key="option.id" @mousedown="selectOption(option)">{{option.title}}</li>
-<!--                <li class="observer" v-intersection="showMore"></li>-->
-            </ul>
-        </div>
+                {{ option.title }}
+            </li>
+            <li class="observer" v-intersection="showMore"></li>
+        </ul>
     </div>
 </template>
 
 <script>
-  import { options } from '../../constants'
+  import { options, DEFAULT_NUMBER_OF_OPTIONS } from '../../utils/constants';
+
+  const optionsWithLowerCase = options.map(option => ({
+    ...option,
+    lowerCaseTitle: option.title.toLowerCase()
+  }));
 
   export default {
     data () {
       return {
+        numberOfOptions: DEFAULT_NUMBER_OF_OPTIONS,
         searchQuery: '',
-        showOptions: 15,
-        selectedOption: null,
         isListVisible: false,
-        highlightedOption: null
+        selectedOption: null,
+        highlightedOptionIndex: null
       }
     },
     computed: {
@@ -45,9 +69,12 @@
       },
       filteredOptions () {
         if (!this.searchQuery) {
-          return options.slice(0, this.showOptions)
+          return optionsWithLowerCase.slice(0, this.numberOfOptions);
         }
-        return options.filter(option => option.title.toLowerCase().includes(this.searchQueryLowerCase)).slice(0, this.showOptions)
+
+        return optionsWithLowerCase
+          .filter(option => option.lowerCaseTitle.includes(this.searchQueryLowerCase))
+          .slice(0, this.numberOfOptions);
       }
     },
     watch: {
@@ -58,42 +85,84 @@
       }
     },
     methods: {
-      showMore() {
-        this.showOptions += 15;
+      onBlur() {
+        this.isListVisible = false;
+        this.searchQuery = this.selectedOption?.title  || "";
+        this.highlightedOptionIndex = null;
+      },
+      onKeyDown(e) {
+        const key = e.key;
+        const arrowKeys = ["ArrowUp", "ArrowDown"];
+
+        if (arrowKeys.includes(key)) {
+          e.preventDefault();
+          this.showList();
+          this.onArrowKey(key);
+          this.scrollToHighlightedOption();
+        }
+      },
+      onArrowKey(key) {
+        const isAnyOptionHighlighted = this.highlightedOptionIndex !== null;
+        const isFirstOptionHighlighted = this.highlightedOptionIndex === 0;
+        const isLastOptionHighlighted = this.highlightedOptionIndex === this.filteredOptions.length - 1;
+
+        const selectFirstOption = () => this.highlightedOptionIndex = 0;
+        const selectLastOption = () => this.highlightedOptionIndex = this.filteredOptions.length - 1;
+        const selectPrevious = () => this.highlightedOptionIndex--;
+        const selectNext = () => this.highlightedOptionIndex++;
+
+        if (key === 'ArrowUp') {
+          !isAnyOptionHighlighted || isFirstOptionHighlighted
+            ? selectLastOption()
+            : selectPrevious();
+        }
+
+        if (key === 'ArrowDown') {
+          !isAnyOptionHighlighted || isLastOptionHighlighted
+            ? selectFirstOption()
+            : selectNext();
+        }
+      },
+      onEnterKey() {
+        const isListVisible = this.isListVisible;
+
+        if (!isListVisible) {
+          this.showList();
+        }
+
+        if (this.highlightedOptionIndex !== null && isListVisible) {
+          this.selectOption(this.filteredOptions[this.highlightedOptionIndex]);
+        }
+      },
+      onEscKey() {
+        this.isListVisible = false;
+      },
+      showList() {
+        if (this.isListVisible) return;
+
+        this.isListVisible = true;
+        this.highlightedOptionIndex = null;
       },
       selectOption(option) {
         this.selectedOption = option;
         this.searchQuery = option.title;
         this.isListVisible = false;
-      },
-      onBlur() {
-        this.isListVisible = false;
-        this.searchQuery = this.selectedOption?.title  || "";
-        this.highlightedOption = null;
+        this.setInputFocus();
       },
       clearInput() {
         this.searchQuery = "";
-        this.selectedOption = null;
+        this.setInputFocus();
       },
-      onKeyDown({ key }) {
-        if (key === 'ArrowUp') {
-          if (this.highlightedOption !== null) {
-            this.highlightedOption = this.highlightedOption === 0 ? this.filteredOptions.length - 1 : this.highlightedOption - 1;
-          } else {
-            this.highlightedOption = this.filteredOptions.length - 1;
-          }
-        } else if (key === 'ArrowDown') {
-          if (this.highlightedOption !== null) {
-            this.highlightedOption = this.filteredOptions.length - 1 === this.highlightedOption ? 0 : this.highlightedOption + 1;
-          } else {
-            this.highlightedOption = 0;
-          }
-        } else if (key === 'Enter') {
-          if (this.highlightedOption) {
-            this.selectOption(this.filteredOptions[this.highlightedOption]);
-          }
-        }
-        this.$refs.optionsList.scrollTop = this.highlightedOption * 30;
+      showMore() {
+        this.numberOfOptions += DEFAULT_NUMBER_OF_OPTIONS;
+      },
+      setInputFocus() {
+        setTimeout(() => this.$refs.input.focus(), 0);
+      },
+      scrollToHighlightedOption() {
+        const option = this.$refs.optionItem[this.highlightedOptionIndex];
+
+        option?.scrollIntoView({ block: "nearest" });
       }
     },
   }
