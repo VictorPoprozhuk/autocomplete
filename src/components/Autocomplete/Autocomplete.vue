@@ -21,12 +21,22 @@
 
         <button
             v-if="searchQuery"
-            class="clear-input"
+            class="inner-button clear-button"
             type="button"
             @click.stop="clearInput"
             @mousedown.prevent
         >
-            <img src="../../icons/icon-close.svg" />
+            <img src="../../icons/icon-close.svg"/>
+        </button>
+
+        <button
+            class="inner-button toggle-button"
+            :class="{opened: isListVisible}"
+            type="button"
+            @click="isListVisible = !isListVisible"
+            @mousedown.prevent
+        >
+            <img src="../../icons/arrow.svg"/>
         </button>
 
         <ul class="options-list" v-if="isListVisible" ref="optionsList">
@@ -108,21 +118,21 @@
         const isFirstOptionHighlighted = this.highlightedOptionIndex === 0;
         const isLastOptionHighlighted = this.highlightedOptionIndex === this.filteredOptions.length - 1;
 
-        const selectFirstOption = () => this.highlightedOptionIndex = 0;
-        const selectLastOption = () => this.highlightedOptionIndex = this.filteredOptions.length - 1;
-        const selectPrevious = () => this.highlightedOptionIndex--;
-        const selectNext = () => this.highlightedOptionIndex++;
+        const highlightFirstOption = () => this.highlightedOptionIndex = 0;
+        const highlightLastOption = () => this.highlightedOptionIndex = this.filteredOptions.length - 1;
+        const highlightPrevious = () => this.highlightedOptionIndex--;
+        const highlightNext = () => this.highlightedOptionIndex++;
 
         if (key === 'ArrowUp') {
           !isAnyOptionHighlighted || isFirstOptionHighlighted
-            ? selectLastOption()
-            : selectPrevious();
+            ? highlightLastOption()
+            : highlightPrevious();
         }
 
         if (key === 'ArrowDown') {
           !isAnyOptionHighlighted || isLastOptionHighlighted
-            ? selectFirstOption()
-            : selectNext();
+            ? highlightFirstOption()
+            : highlightNext();
         }
       },
       onEnterKey() {
@@ -146,6 +156,7 @@
       selectOption(option) {
         this.selectedOption = option;
         this.searchQuery = option.title;
+        this.isListVisible = false;
       },
       clearInput() {
         this.searchQuery = "";

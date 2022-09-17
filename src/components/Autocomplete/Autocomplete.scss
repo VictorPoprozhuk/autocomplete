@@ -53,21 +53,37 @@
     &::placeholder {
       color: transparent;
     }
-
-
   }
 
-  .clear-input {
+  .inner-button {
     position: absolute;
     bottom: 10px;
-    right: 10px;
-    border-radius: 50%;
     border: none;
     background-color: transparent;
     width: 16px;
     height: 16px;
     padding: 0;
     cursor: pointer;
+
+
+    &.toggle-button {
+      right: 10px;
+      padding: 3px 0;
+
+      img {
+        transition: transform 0.2s;
+
+      }
+
+      &.opened img {
+        transform: rotate(180deg);
+        transform-origin: center;
+      }
+    }
+
+    &.clear-button {
+      right: 30px;
+    }
 
     img {
       width: 100%;
@@ -80,7 +96,7 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    box-shadow: 0px 0px 3px rgba(0, 0, 0, .5);
+    box-shadow: 0px 2px 3px rgba(0, 0, 0, .5);
     max-height: 300px;
     overflow-y: auto;
     position: absolute;
