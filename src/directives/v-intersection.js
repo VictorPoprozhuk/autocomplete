@@ -1,12 +1,11 @@
 export const vIntersection =  (el, binding) => {
   const options = {
     rootMargin: "0px",
-    threshold: 1.0,
+    threshold: 0.9
   };
   const callback = (entries) => {
-    if (
-      entries[0].isIntersecting
-    ) {
+    const entry = entries[0];
+    if (entry.isIntersecting) {
       binding.value();
     }
   };
