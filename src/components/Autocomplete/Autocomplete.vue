@@ -1,5 +1,5 @@
 <template>
-    <div class="autocomplete-container" ref="container">
+    <div class="autocomplete-container">
         <input
             v-model="searchQuery"
             class="query-input"
@@ -10,6 +10,7 @@
             ref="input"
             @click="showList"
             @blur="onBlur"
+            @input="showList"
             @keydown.enter="onEnterKey"
             @keydown.esc="onEscKey"
             @keydown.up.prevent="onArrowKey('up')"
@@ -35,12 +36,12 @@
             :class="{opened: isListVisible}"
             type="button"
             @click="isListVisible = !isListVisible"
-            @mousedown.prevent
+            @mousedown.prevent="$refs.input.focus()"
         >
             <img src="../../icons/arrow.svg"/>
         </button>
 
-        <ul class="options-list" v-if="isListVisible" ref="optionsList">
+        <ul class="options-list" v-if="isListVisible">
             <li
                 v-for="(option, index) in filteredOptions"
                 :key="option.id"
@@ -67,7 +68,7 @@
   }));
 
   export default {
-    data () {
+    data() {
       return {
         numberOfOptions: DEFAULT_NUMBER_OF_OPTIONS,
         searchQuery: '',
@@ -77,10 +78,10 @@
       }
     },
     computed: {
-      searchQueryLowerCase () {
+      searchQueryLowerCase() {
         return this.searchQuery.toLowerCase()
       },
-      filteredOptions () {
+      filteredOptions() {
         if (!this.searchQuery) {
           return optionsWithLowerCase.slice(0, this.numberOfOptions);
         }
@@ -104,7 +105,6 @@
         this.highlightedOptionIndex = null;
       },
       onArrowKey(key) {
-        this.showList();
         key === 'up' ? this.onArrowUpKey() : this.onArrowDownKey();
         this.scrollToHighlightedOption();
       },
@@ -133,9 +133,7 @@
       onEnterKey() {
         const isListVisible = this.isListVisible;
 
-        if (!isListVisible) {
-          this.showList();
-        } else if (this.highlightedOptionIndex !== null && isListVisible) {
+        if (this.highlightedOptionIndex !== null && isListVisible) {
           this.selectOption(this.filteredOptions[this.highlightedOptionIndex]);
         }
       },
