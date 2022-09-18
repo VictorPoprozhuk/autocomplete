@@ -1,7 +1,7 @@
 <template>
     <div class="autocomplete-container">
         <input
-            v-model="searchQuery"
+            v-model="inputValue"
             class="query-input"
             type="text"
             placeholder="Choose a name"
@@ -22,7 +22,7 @@
         </label>
 
         <button
-            v-if="searchQuery"
+            v-if="inputValue"
             class="inner-button clear-button"
             type="button"
             @click.stop="clearInput"
@@ -61,6 +61,7 @@
 
 <script>
   import { options, DEFAULT_NUMBER_OF_OPTIONS } from '../../utils/constants';
+  import { debounce } from '../../utils/debounce'
 
   const optionsWithLowerCase = options.map(option => ({
     ...option,
@@ -71,6 +72,7 @@
     data() {
       return {
         numberOfOptions: DEFAULT_NUMBER_OF_OPTIONS,
+        inputValue: '',
         searchQuery: '',
         isListVisible: false,
         selectedOption: null,
@@ -96,15 +98,20 @@
         if (!newValue) {
           this.selectedOption = null;
         }
-      }
+        this.highlightedOptionIndex = null;
+      },
+      inputValue: debounce(function(newValue) {
+            this.searchQuery = newValue
+      }, 500)
     },
     methods: {
       onBlur() {
         this.isListVisible = false;
-        this.searchQuery = this.selectedOption?.title  || "";
+        this.setValue(this.selectedOption?.title  || "");
         this.highlightedOptionIndex = null;
       },
       onArrowKey(key) {
+        this.showList();
         key === 'up' ? this.onArrowUpKey() : this.onArrowDownKey();
         this.scrollToHighlightedOption();
       },
@@ -121,10 +128,15 @@
       },
       onArrowDownKey() {
         const isAnyOptionHighlighted = this.highlightedOptionIndex !== null;
-        const isLastOptionHighlighted = this.highlightedOptionIndex === this.filteredOptions.length - 1;
+        const isLastVisibleOptionHighlighted = this.highlightedOptionIndex === this.filteredOptions.length - 1;
+        const isLastOptionHighlighted = optionsWithLowerCase.length === this.highlightedOptionIndex + 1;
 
         const highlightFirstOption = () => this.highlightedOptionIndex = 0;
         const highlightNext = () => this.highlightedOptionIndex++;
+
+        if (isLastVisibleOptionHighlighted) {
+          this.showMore();
+        }
 
         !isAnyOptionHighlighted || isLastOptionHighlighted
           ? highlightFirstOption()
@@ -132,6 +144,8 @@
       },
       onEnterKey() {
         const isListVisible = this.isListVisible;
+
+        this.showList();
 
         if (this.highlightedOptionIndex !== null && isListVisible) {
           this.selectOption(this.filteredOptions[this.highlightedOptionIndex]);
@@ -148,11 +162,11 @@
       },
       selectOption(option) {
         this.selectedOption = option;
-        this.searchQuery = option.title;
+        this.setValue(option.title);
         this.isListVisible = false;
       },
       clearInput() {
-        this.searchQuery = "";
+        this.setValue("");
       },
       showMore() {
         this.numberOfOptions += DEFAULT_NUMBER_OF_OPTIONS;
@@ -163,6 +177,10 @@
 
           option?.scrollIntoView({ block: "nearest" });
         }, 0);
+      },
+      setValue(value) {
+        this.inputValue = value;
+        this.searchQuery = value;
       }
     },
   }
