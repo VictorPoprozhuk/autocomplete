@@ -1,6 +1,6 @@
 # autocomplete-vue
 
-[Demo]([https://link-url-here.org](https://vityapoprozhuk.github.io/ILevel-autocomplete-build/))
+[Demo](https://vityapoprozhuk.github.io/ILevel-autocomplete-build/)
 
 
 ## Project setup
